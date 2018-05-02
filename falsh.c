@@ -60,84 +60,95 @@ int main(int argc, char *argv[]){
 	//if argument 1 is exit
 	if(strcmp(newArgv[0],"exit") == 0){
 	exit(0);
-	}
-	if(strcmp(newArgv[0],"clean") == 0){
+	}else if(strcmp(newArgv[0],"clean") == 0){
 	system("clear");
-	}
+	}else if(strcmp(newArgv[0],"pwd") == 0){
 	//compare user input with comand
 	//if argument 1 is cd
-	if(strcmp(newArgv[0],"pwd") == 0){
 	printf("Current Directory:%s\n ",outputText);
-	}
+	}else if(strcmp(newArgv[0],"cd") == 0){
 	//compare user input with comand
-	if(strcmp(newArgv[0],"cd") == 0){
-		//if there is only one argument
-		//change directory to home directory
-		if(argvindex == 0){
-		inputText = getenv("HOME");
-		chdir(inputText);
-		}else{
-		//else use second argument
-		// to change the working directory
-		inputText = newArgv[1];
-		chdir(inputText);
-		}
-
-
+	//if there is only one argument
+	//change directory to home directory
+	if(argvindex == 0){
+	inputText = getenv("HOME");
+	chdir(inputText);
+	}else{
+	//else use second argument
+	// to change the working directory
+	inputText = newArgv[1];
+	chdir(inputText);
 	}
+
+	}else if(strcmp(newArgv[0],"setpath") == 0){
+	//compare user input with comand
 
 	for(int j = 0;j < lineSize; j++){
 	inputText[j] = '\0';
 	}
 
-	//compare user input with comand
-	if(strcmp(newArgv[0],"setpath") == 0){
-		if(argvindex < 1){
-		printf("setpath need to have more than 1 argument\n");
+	if(argvindex < 1){
+	//if there is only  argument which is setpath
+	//print error string
+	printf("setpath need to have more than 1 argument\n");
 
-		}else{
+	}else{
+	//more than 1 argument
 
+	//if user enter more than 1 argument
+	//run though all argument to create them
 		for(int i = 1; i < (argvindex + 1); i++){
-			stringindex = 0;
-			ch= ' ';
-			index = 0;
+		stringindex = 0;
+		ch= ' ';
+		index = 0;
 
 			while(ch != '\0'){
 			ch = newArgv[i][stringindex];
-			if(ch == '/'){
-			if(stringindex != 0 ){
-			errorreturn = mkdir(inputText,S_IRWXG|S_IRWXU);
-			if(errorreturn == -1){
-			rmdir(inputText);
-			}
-			printf("make direction:%s\nError %d\n",
-						inputText,errorreturn);
-			chdir(inputText);
-			for(int j = 0;j < lineSize; j++){
-			inputText[j] = '\0';
-			}
-			}
-			index = -1;
+				if(ch == '/'){
+//create directory by inputtext
+//move current directory into create one
+//ready to create directory inside the directory
+				if(stringindex != 0 ){
+				errorreturn = mkdir(inputText,S_IRWXG|S_IRWXU);
+				}
+				if(errorreturn == -1){
+				rmdir(inputText);
+				}
+				chdir(inputText);
+//inputtext use for create directory
+//reset it
+//because alreadu create the directory
+				for(int j = 0;j < lineSize; j++){
+				inputText[j] = '\0';
+				}
+
+				index = -1;
+
 				}else{
+//if read character is not /, input it into string
+//use string to create file
 				inputText[index] = ch;
 				}
-				index++;
-				stringindex++;
+
+			index++;
+			stringindex++;
+
 			}
+			//create directory by /
+			//and there will be the last argument being left
+			//create the last directory
 			errorreturn = mkdir(inputText,S_IRWXG|S_IRWXU);
 			if(errorreturn == -1){
 			rmdir(inputText);
 			}
-			printf("make direction:%s\nError %d\n",inputText,errorreturn);
-
 			chdir(outputText);
 		}
 
 		}
-	}
+	}else if(strcmp(newArgv[0],"help") == 0){
 	//compare user input with comand
 	//if argument 1 is help
-	if(strcmp(newArgv[0],"help") == 0){
+
 	printf("Built-In Command:\n");
 	printf("exit\n\n");
 	printf("leave shell falsh, back to bash\n\n");
@@ -156,6 +167,9 @@ int main(int argc, char *argv[]){
 	printf("if there is more than one argument create all of them\n\n");
 	printf("help\n\n");
 	printf("print the short description about built in command\n");
+
+
+	}else{
 
 
 	}
