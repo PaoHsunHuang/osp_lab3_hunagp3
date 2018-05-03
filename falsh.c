@@ -1,7 +1,8 @@
 #include<sys/types.h>
-#include<dirent.h>
 #include<sys/stat.h>
 #include<sys/wait.h>
+#include<dirent.h>
+#include<fcntl.h>
 #include<stdio.h>
 #include<unistd.h>
 #include<stdlib.h>
@@ -27,11 +28,12 @@ int main(int argc, char *argv[]){
 	int stringindex = 0;
 	int spacecheck = 0;
 	int errorreturn = 0;
+	int fileptr;
+	int stdoutcopy = dup(STDOUT_FILENO);
+	int redirect = 0;
 	while(1){
-	//reset all argument into null
 	//reset index number and read in ch for next line
 	//print the current directory befoe each line
-
 	getcwd(outputText,lineSize);
 	printf("%s:$ ",outputText);
 	getline(&inputText,&lineSize,stdin);
@@ -64,9 +66,39 @@ int main(int argc, char *argv[]){
 		}
 		stringindex++;
 	}
-	for(int i = 0; i < argvindex + 1; i++){
-	printf("readin data:argv[%d] %s\n",i,newArgv[i]);
+
+
+	//check if > is inside command line
+	//if there is > use next word as address
+
+	index = 0;
+	for(int i = 0; i < (argvindex); i++ ){
+	if(strcmp(newArgv[i],">") == 0){
+	index = i;
+	redirect = 1;
 	}
+	}
+	//try to open the file, if there is no file
+	//create one, if error still happen, 
+	//either next word is empty or unknown error happen
+	if(redirect == 1){
+	if(fileptr = open(newArgv[index + 1], O_CREAT|O_TRUNC)){
+	dup2(fileptr, STDOUT_FILENO);
+	for(int i = 0; i < lineSize; i++){
+		newArgv[index][i] = '\0';
+		newArgv[index + 1][i] = '\0';
+	}
+	argvindex -= 2;
+	}else{
+		if(newArgv[index + 1][0] == '\0'){
+		printf("> need to follow a directoyu\n");
+		}else{
+		printf("Unknown error  happen \n");
+		}
+	}
+	}
+
+
 
 	//compare user input with comand
 	//if argument 1 is exit
@@ -94,9 +126,6 @@ int main(int argc, char *argv[]){
 
 	}else if(strcmp(newArgv[0],"setpath") == 0){
 	//compare user input with comand
-//	for(int j = 0;j < lineSize; j++){
-//	inputText[j] = '\0';
-//	}
 	resettext(inputText);
 	if(argvindex < 1){
 	//if there is only  argument which is setpath
@@ -112,27 +141,26 @@ int main(int argc, char *argv[]){
 		index = 0;
 			while(ch != '\0'){
 			ch = newArgv[i][stringindex];
-				if(ch == '/'){
-//create directory by inputtext
-//move current directory into create one
-//ready to create directory inside the directory
-				if(stringindex != 0 ){
-				errorreturn = mkdir(inputText,S_IRWXG|S_IRWXU);
-				}
-				if(errorreturn == -1){
-				rmdir(inputText);
-				}
-				chdir(inputText);
-//inputtext use for create directory reset it
-//because alreadu create the directory
-				resettext(inputText);
-				index = -1;
+			if(ch == '/'){
+		//create directory by inputtext
+		//move current directory into create one
+		//ready to create directory inside the directory
+			if(stringindex != 0 ){
+			errorreturn = mkdir(inputText,S_IRWXG|S_IRWXU);
+			}
 
-				}else{
-//if read character is not /, input it into string
-//use string to create file
-				inputText[index] = ch;
-				}
+			if(errorreturn == -1){
+			rmdir(inputText);
+			}
+
+			chdir(inputText);
+			resettext(inputText);
+			index = -1;
+			}else{
+		//if read character is not /, input it into string
+		//use string to create file
+			inputText[index] = ch;
+			}
 
 			index++;
 			stringindex++;
@@ -145,7 +173,7 @@ int main(int argc, char *argv[]){
 			rmdir(inputText);
 			}
 			chdir(outputText);
-		}
+			}
 		}
 	}else if(strcmp(newArgv[0],"help") == 0){
 	//compare user input with comand
@@ -185,24 +213,22 @@ int main(int argc, char *argv[]){
 	int rc = fork();
 	if(rc < 0){
 	// fork fail, print error messeage
-
 	printf("fail to fork\n");
 	}else if(rc == 0){
 	//fork success
 
-	if(execvp(callfunction[0],callfunction) < 0){
+		if(execv(callfunction[0],callfunction) < 0){
+		printf("can't exec function\n");
+		exit(0);
+		}
 
-	printf("can't exec function\n");
-	exit(0);
-
-	}
 	}else{
 	int wc = wait(NULL);
 	}
 
-
 	}
 	//reset everything for next run
+	fflush(stdout);
 	stringindex = 0;
 	argvindex = 0;
 	index = 0;
@@ -212,8 +238,13 @@ int main(int argc, char *argv[]){
 	for(int i = 0; i < lineSize; i ++){
 		for(int k = 0; k < lineSize; k ++){
 		newArgv[i][k] = '\0';
-//		callfunction[i][k]='\0';
 		}
+	}
+	//if already check stdout
+	//change it back
+	if(redirect == 1){
+	dup2(stdoutcopy, STDOUT_FILENO);
+	redirect = 0;
 	}
 
 	}
