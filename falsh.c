@@ -1,6 +1,7 @@
 #include<sys/types.h>
 #include<dirent.h>
 #include<sys/stat.h>
+#include<sys/wait.h>
 #include<stdio.h>
 #include<unistd.h>
 #include<stdlib.h>
@@ -8,6 +9,13 @@
 #include<ctype.h>
 size_t lineSize = 256;
 int lineNum = 5;
+int resettext(char *text){
+	for(int j = 0;j < lineSize; j++){
+	text[j] = '\0';
+	}
+
+return 0;
+}
 
 int main(int argc, char *argv[]){
 	char *inputText;
@@ -20,7 +28,10 @@ int main(int argc, char *argv[]){
 	int spacecheck = 0;
 	int errorreturn = 0;
 	while(1){
+	//reset all argument into null
+	//reset index number and read in ch for next line
 	//print the current directory befoe each line
+
 	getcwd(outputText,lineSize);
 	printf("%s:$ ",outputText);
 	getline(&inputText,&lineSize,stdin);
@@ -33,6 +44,7 @@ int main(int argc, char *argv[]){
 		if(ch > 'A' && ch < 'Z'){
 		ch += 32;
 		}
+
 		if(ch == '\n'){
 		}else if(ch == '	'){
 		spacecheck = 1;
@@ -52,9 +64,9 @@ int main(int argc, char *argv[]){
 		}
 		stringindex++;
 	}
-
-
-
+	for(int i = 0; i < argvindex + 1; i++){
+	printf("readin data:argv[%d] %s\n",i,newArgv[i]);
+	}
 
 	//compare user input with comand
 	//if argument 1 is exit
@@ -82,26 +94,22 @@ int main(int argc, char *argv[]){
 
 	}else if(strcmp(newArgv[0],"setpath") == 0){
 	//compare user input with comand
-
-	for(int j = 0;j < lineSize; j++){
-	inputText[j] = '\0';
-	}
-
+//	for(int j = 0;j < lineSize; j++){
+//	inputText[j] = '\0';
+//	}
+	resettext(inputText);
 	if(argvindex < 1){
 	//if there is only  argument which is setpath
 	//print error string
 	printf("setpath need to have more than 1 argument\n");
-
 	}else{
 	//more than 1 argument
-
 	//if user enter more than 1 argument
 	//run though all argument to create them
 		for(int i = 1; i < (argvindex + 1); i++){
 		stringindex = 0;
 		ch= ' ';
 		index = 0;
-
 			while(ch != '\0'){
 			ch = newArgv[i][stringindex];
 				if(ch == '/'){
@@ -115,13 +123,9 @@ int main(int argc, char *argv[]){
 				rmdir(inputText);
 				}
 				chdir(inputText);
-//inputtext use for create directory
-//reset it
+//inputtext use for create directory reset it
 //because alreadu create the directory
-				for(int j = 0;j < lineSize; j++){
-				inputText[j] = '\0';
-				}
-
+				resettext(inputText);
 				index = -1;
 
 				}else{
@@ -132,7 +136,6 @@ int main(int argc, char *argv[]){
 
 			index++;
 			stringindex++;
-
 			}
 			//create directory by /
 			//and there will be the last argument being left
@@ -143,7 +146,6 @@ int main(int argc, char *argv[]){
 			}
 			chdir(outputText);
 		}
-
 		}
 	}else if(strcmp(newArgv[0],"help") == 0){
 	//compare user input with comand
@@ -170,45 +172,49 @@ int main(int argc, char *argv[]){
 
 
 	}else{
+	//copy data into other array string
+	//array string different from original one
+	//and put NULL at the last string
+	char *callfunction[lineSize];
+
+	for(int i = 0; i < (argvindex + 1); i++){
+	callfunction[i] = newArgv[i];
+	}
+	callfunction[argvindex + 1] = NULL;
+
+	int rc = fork();
+	if(rc < 0){
+	// fork fail, print error messeage
+
+	printf("fail to fork\n");
+	}else if(rc == 0){
+	//fork success
+
+	if(execvp(callfunction[0],callfunction) < 0){
+
+	printf("can't exec function\n");
+	exit(0);
+
+	}
+	}else{
+	int wc = wait(NULL);
+	}
 
 
 	}
-
-	//reset all argument into null
-	//reset index number and read in ch for next line
-	for(int i = 0; i < (argvindex + 1); i ++){
-		for(int k = 0; k < lineSize; k ++){
-		newArgv[i][k] = '\0';
-		}
-	}
+	//reset everything for next run
 	stringindex = 0;
 	argvindex = 0;
 	index = 0;
 	ch = '\0';
+	resettext(inputText);
+	resettext(outputText);
+	for(int i = 0; i < lineSize; i ++){
+		for(int k = 0; k < lineSize; k ++){
+		newArgv[i][k] = '\0';
+//		callfunction[i][k]='\0';
+		}
+	}
+
 	}
 }
-/*	if(ch != ' '){
-	newArgv[argvindex][index] = ch;
-	index++;
-	printf("ch = %c\n",ch);
-	}
-	stringIndex++;
-*/
-	
-
-/*
-	//if user input text, exit program
-	strcmpint = strcmp(inputText, "exit\n");
-	if(strcmpint == 0 ){
-	return 0;
-	}
-
-	//if user input pwd, print curremt directory
-	strcmpint = strcmp(inputText,"pwd\n");
-	if(strcmpint  == 0){
-	printf("current directory: %s\n",outputText);
-	}
-*/
-
-/*
-*/
