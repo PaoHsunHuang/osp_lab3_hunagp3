@@ -41,12 +41,8 @@ int main(int argc, char *argv[]){
 
 	//read and parse user input
 	//use any space and tab to seperate each argument
-	//every upper case letter will be change to lower case
 	while(ch != '\n'){
 	ch = inputText[stringindex];
-		if(ch > 'A' && ch < 'Z'){
-		ch += 32;
-		}
 
 		if(ch == '\n'){
 		}else if(ch == '	'){
