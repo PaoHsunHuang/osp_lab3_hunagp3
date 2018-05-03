@@ -11,6 +11,7 @@
 size_t lineSize = 256;
 int lineNum = 5;
 int resettext(char *text){
+	//use for reset string
 	for(int j = 0;j < lineSize; j++){
 	text[j] = '\0';
 	}
@@ -91,7 +92,7 @@ int main(int argc, char *argv[]){
 	argvindex -= 2;
 	}else{
 		if(newArgv[index + 1][0] == '\0'){
-		printf("> need to follow a directoyu\n");
+		printf("> need to follow a directoy\n");
 		}else{
 		printf("Unknown error  happen \n");
 		}
@@ -105,6 +106,7 @@ int main(int argc, char *argv[]){
 	if(strcmp(newArgv[0],"exit") == 0){
 	exit(0);
 	}else if(strcmp(newArgv[0],"clean") == 0){
+	//extra feature cleanr window
 	system("clear");
 	}else if(strcmp(newArgv[0],"pwd") == 0){
 	//compare user input with comand
@@ -121,7 +123,10 @@ int main(int argc, char *argv[]){
 	//else use second argument
 	// to change the working directory
 	inputText = newArgv[1];
-	chdir(inputText);
+	errorreturn = chdir(inputText);
+	if(errorreturn == -1){
+	printf("cannot find the directory\n");
+	}
 	}
 
 	}else if(strcmp(newArgv[0],"setpath") == 0){
@@ -218,11 +223,14 @@ int main(int argc, char *argv[]){
 	//fork success
 
 		if(execv(callfunction[0],callfunction) < 0){
-		printf("can't exec function\n");
+		printf("can't exec the function\n");
+		printf("please enter the function by path\n");
 		exit(0);
 		}
 
 	}else{
+	//parent process
+	//wait until child finish
 	int wc = wait(NULL);
 	}
 
